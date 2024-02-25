@@ -396,7 +396,7 @@ wire [10:0] audio;
 //assign DAC_L = {audio,audio[10:5]};
 //assign DAC_R = {audio,audio[10:5]};
 
-wire[15:0] mix = { 1'd0, audio, 3'd0 };
+wire[15:0] mix = { audio [9:0], audio[10:5] };
 i2s i2s(CLOCK_27, { I2S_DATA, I2S_LRCK, I2S_BCK }, mix, mix); // clock should be 50 MHz
 
 wire CLK_VIDEO = clk_sys;
