@@ -31,10 +31,13 @@ module guest_top
         output        LED,                                              
         output        VGA_HS,
         output        VGA_VS,
-        output        AUDIO_L,
-        output        AUDIO_R, 
+//        output        AUDIO_L,
+//        output        AUDIO_R, 
 //		  output [15:0]  DAC_L, 
 //		  output [15:0]  DAC_R, 
+	    output        I2S_BCK,
+	    output        I2S_LRCK,
+	    output        I2S_DATA,
         input         AUDIO_IN,
         input         UART_RX,
         output        UART_TX,
@@ -390,8 +393,11 @@ spramv #(15) extended_rom
 ////////////////  Console  ////////////////////////
 
 wire [10:0] audio;
-assign DAC_L = {audio,audio[10:5]};
-assign DAC_R = {audio,audio[10:5]};
+//assign DAC_L = {audio,audio[10:5]};
+//assign DAC_R = {audio,audio[10:5]};
+
+wire[15:0] mix = { 1'd0, audio, 3'd0 };
+i2s i2s(CLOCK_27, { I2S_DATA, I2S_LRCK, I2S_BCK }, mix, mix); // clock should be 50 MHz
 
 wire CLK_VIDEO = clk_sys;
 

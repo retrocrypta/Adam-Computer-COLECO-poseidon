@@ -255,10 +255,6 @@ set_location_assignment PIN_A25 -to LED1
 set_location_assignment PIN_A24 -to LED2
 set_location_assignment PIN_AD23 -to KEY0
 set_location_assignment PIN_AD24 -to KEY1
-set_location_assignment PIN_AE17 -to i2s[2]
-set_location_assignment PIN_AD17 -to i2s[1]
-set_location_assignment PIN_AF17 -to i2s[0]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MAXIMUM CURRENT" -to i2s*
 set_location_assignment PLL_1 -to "pll:pll|altpll:altpll_component"
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SDRAM_DQ[0]
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SDRAM_DQ[1]
