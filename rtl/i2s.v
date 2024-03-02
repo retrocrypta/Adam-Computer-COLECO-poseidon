@@ -15,7 +15,7 @@
 //  You should have received a copy of the GNU General Public License along with this program;
 //  if not, If not, see <https://www.gnu.org/licenses/>.
 //-------------------------------------------------------------------------------------------------
-module i2s
+module i2s_kyp
 //-------------------------------------------------------------------------------------------------
 (
 	input  wire       clock,

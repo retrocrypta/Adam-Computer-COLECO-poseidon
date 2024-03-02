@@ -89,6 +89,28 @@ parameter CONF_STR = {
         "V,v",`BUILD_DATE
 };
 
+`ifdef VGA_8BIT
+localparam VGA_BITS = 8;
+`else
+localparam VGA_BITS = 6;
+`endif
+
+`ifdef USE_HDMI
+localparam bit HDMI = 1;
+assign HDMI_RST = 1'b1;
+`else
+localparam bit HDMI = 0;
+`endif
+
+`ifdef BIG_OSD
+localparam bit BIG_OSD = 1;
+`define SEP "-;",
+`else
+localparam bit BIG_OSD = 0;
+`define SEP
+`endif
+
+
 /////////////////  CLOCKS  ////////////////////////
 
 wire clk_sys;
@@ -177,7 +199,9 @@ always @(posedge clk_sys) begin
 
 end
 
-user_io #(.STRLEN($size(CONF_STR)>>3),.SD_IMAGES(TOT_DISKS)) user_io
+wire no_csync;
+
+user_io #(.STRLEN($size(CONF_STR)>>3),.SD_IMAGES(TOT_DISKS),.FEATURES(32'h0 | (BIG_OSD << 13) | (HDMI << 14))) user_io
 (
 	.clk_sys             (clk_sys          ),
    .clk_sd              (clk_sys          ),
@@ -190,7 +214,7 @@ user_io #(.STRLEN($size(CONF_STR)>>3),.SD_IMAGES(TOT_DISKS)) user_io
 	.status              (status),
 	.scandoubler_disable (forced_scandoubler),
 	.ypbpr               (ypbpr),
-	.no_csync            (),
+	.no_csync            (no_csync),
 	.buttons             (buttons),
 	
 	.ps2_key             (ps2_key),
@@ -397,7 +421,7 @@ wire [10:0] audio;
 //assign DAC_R = {audio,audio[10:5]};
 
 wire[15:0] mix = { audio [9:0], audio[10:5] };
-i2s i2s(CLOCK_27, { I2S_DATA, I2S_LRCK, I2S_BCK }, mix, mix); // clock should be 50 MHz
+i2s_kyp i2s(CLOCK_27, { I2S_DATA, I2S_LRCK, I2S_BCK }, mix, mix); // clock should be 50 MHz
 
 wire CLK_VIDEO = clk_sys;
 
@@ -573,31 +597,32 @@ always @(posedge CLK_VIDEO) begin
         if(~hs_o & ~hsync) vs_o <= ~vsync;
 end
 
-video_mixer #(.LINE_LENGTH(284), .HALF_DEPTH(0)) video_mixer
+
+mist_video #(.COLOR_DEPTH(6), .SD_HCNT_WIDTH(10), .OUT_COLOR_DEPTH(VGA_BITS), .USE_BLANKS(1'b1), .VIDEO_CLEANER(1'b1), .BIG_OSD(BIG_OSD)) mist_video
 (
 	.clk_sys(clk_sys),
-	.ce_pix(ce_5m3),
-	.ce_pix_actual(ce_5m3),
 	.SPI_SCK(SPI_SCK),
 	.SPI_SS3(SPI_SS3),
 	.SPI_DI(SPI_DI),
-	.scanlines(forced_scandoubler ? 2'b00 : {status[9:7] == 3, status[9:7] == 2}),
-	.scandoubler_disable(forced_scandoubler),
-	.hq2x(status[9:7]==1),
-	.ypbpr(ypbpr),
-	.ypbpr_full(1),
 	.R(R[7:2]),
 	.G(G[7:2]),
 	.B(B[7:2]),
-	.mono(0),
 	.HSync(hs_o),
 	.VSync(vs_o),
-	.line_start(hblank),
+	.HBlank(hblank),
+   .VBlank(vblank),
 	.VGA_R(VGA_R),
 	.VGA_G(VGA_G),
 	.VGA_B(VGA_B),
 	.VGA_VS(VGA_VS),
-	.VGA_HS(VGA_HS)
+	.VGA_HS(VGA_HS),
+	.no_csync    (no_csync),
+	.ce_divider   (1'b0       ),
+	.scanlines(forced_scandoubler ? 2'b00 : {status[9:7] == 3, status[9:7] == 2}),
+	.scandoubler_disable(forced_scandoubler),
+	.ypbpr(ypbpr)
+	
+	
 );
 
 dac #(16) dac_l (
